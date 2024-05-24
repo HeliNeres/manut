@@ -11,6 +11,7 @@ scope = 'https://spreadsheets.google.com/feeds'
 creds = ServiceAccountCredentials.from_json_keyfile_name('_internal/jimmy.json', scope)
 gs = authorize(creds)
 url_geo = 'https://geoex.com.br/api/Cadastro/ConsultarProjeto/'
+url_pasta = 'https://geoex.com.br/api/ConsultarProjeto/EnvioPasta/Itens'
 
 def abre(arquivo):
     with open(arquivo) as dados:
@@ -21,6 +22,8 @@ def abre(arquivo):
 planilhas = abre('_internal/meses.json')
 meses = [a for a in planilhas]
 mes = meses[-1]
+juncao = '1khJrFoVUdEp3vh8rE9qnO090_0Ay6tll0AWdEHMSnyU'
+abas_pastas = ['CAPEX_2024','OPEX_2024']
 
 #Abre o cookie para o GEOEX
 data = abre('_internal/cookie.json')
@@ -71,41 +74,6 @@ def procura_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userage
         raise Exception('Cookie inválido! Não autorizado')
 
     return id_projeto
-
-def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
-    #print(cookie, '\n', gxsessao, '\n', useragent)
-    titulo, statusgse = '',''
-    r = ''
-    projeto = str(projeto).strip()
-
-    url = url_geo+'Item'
-    header = {
-        'Cookie': cookie,
-        'User-Agent': useragent,
-        'Gxsessao': gxsessao
-    }
-    body = {
-        'id':projeto
-    }
-
-    try:
-        r = post(url = url, headers = header, json = body)
-        r = r.json()
-    except Exception as e:
-        print(hora_atual())
-        print('Exception', e)
-        print('Requisição', r)
-        print('Projeto ', projeto)
-        raise Exception('Não foi possível acessar a página do GEOEX.')
-
-    if r['Content'] != None:
-        titulo = r['Content']['Titulo']
-        statusgse = r['Content']['GseProjeto']['Status']['Nome']
-    elif r['IsUnauthorized']:
-        print(r)
-        raise Exception('Cookie inválido! Não autorizado')
-
-    return titulo, statusgse
 
 def consulta_medicao_geoex(projeto, idmedicao, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
     validacao = ''
@@ -234,7 +202,6 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
                 if a[0]=='':
                     a = []
                 
-            #print(a)
             valores.append(a)
             cont = 0
 
@@ -248,6 +215,90 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
     nomeplanilha.update()
     sh.worksheet(planilha).update(intervalo,valores)
     #print('\n' + 'Status das medições de ' + planilha + ' atualizados\n')
+
+def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
+    #print(cookie, '\n', gxsessao, '\n', useragent)
+    id_projeto, titulo, statusprj, statususuario = '','','',''
+    r = ''
+    projeto = str(projeto).strip()
+
+    url = url_geo+'Item'
+    header = {
+        'Cookie': cookie,
+        'User-Agent': useragent,
+        'Gxsessao': gxsessao
+    }
+    body = {
+        'id':projeto
+    }
+
+    try:
+        r = post(url = url, headers = header, json = body)
+        r = r.json()
+    except Exception as e:
+        print(hora_atual())
+        print('Exception', e)
+        print('Requisição', r)
+        print('Projeto ', projeto)
+        raise Exception('Não foi possível acessar a página do GEOEX.')
+
+    if r['Content'] != None:
+        id_projeto = r['Content']['ProjetoId']
+        if r['Content']['Titulo'] != None:
+            titulo = r['Content']['Titulo']
+        if r['Content']['StatusProjeto']['Descricao'] != None:
+            statusprj = r['Content']['StatusProjeto']['Descricao']
+        if r['Content']['StatusUsuario']['Descricao'] != None:
+            statususuario = r['Content']['StatusUsuario']['Descricao']
+    elif r['IsUnauthorized']:
+        print(r)
+        raise Exception('Cookie inválido! Não autorizado')
+
+    return id_projeto, titulo, statusprj, statususuario
+
+def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
+    #print(cookie, '\n', gxsessao, '\n', useragent)
+    statusceite, obsaceite, serial = '','',''
+    r = ''
+
+    url = url_pasta
+    header = {
+        'Cookie': cookie,
+        'User-Agent': useragent,
+        'Gxsessao': gxsessao
+    }
+    body = {
+        'ProjetoId':idprojeto
+    }
+
+    try:
+        r = post(url = url, headers = header, json = body)
+        r = r.json()
+    except Exception as e:
+        print(hora_atual())
+        print('Exception', e)
+        print('Requisição', r)
+        print('IDProjeto ', idprojeto)
+        raise Exception('Não foi possível acessar a página do GEOEX.')
+
+    try:
+        if r['Content'] != None:
+            if len(r['Content']['Items'])>0:
+                if r['Content']['Items'][0]['HistoricoStatus']['Nome'] != None:
+                    statusceite = r['Content']['Items'][0]['HistoricoStatus']['Nome']
+                if r['Content']['Items'][0]['Observacao'] != None:
+                    obsaceite = r['Content']['Items'][0]['Observacao']
+                if r['Content']['Items'][0]['Serial'] != None:
+                    serial = r['Content']['Items'][0]['Serial']
+        elif r['IsUnauthorized']:
+            print(r)
+            raise Exception('Cookie inválido! Não autorizado')
+    except Exception as e:
+        print(e)
+        print(r)
+        raise Exception('Falha na requisição.')
+
+    return statusceite, obsaceite, serial
 
 def atualiza_planilha(link, progresso, porcentagem, nomeplanilha, intervalo):
     global data, cookie, gxsessao, useragent
@@ -281,3 +332,40 @@ def atualiza_planilha(link, progresso, porcentagem, nomeplanilha, intervalo):
     nomeplanilha.update()
             
     print(hora_atual() + ': ' + mes + ' atualizado!')
+
+def atualiza_pasta(juncao):
+    sh = gs.open_by_key(juncao)
+    print(hora_atual() + ': ' + 'Atualizando Pastas')
+
+    valores = [[],[]]
+    a,b=[],[]
+    idgeoex = 'a'
+    cont = 0
+
+    lista = sh.worksheets()
+
+    for aba in lista:
+        if aba.title in abas_pastas:
+            print(hora_atual() + ': ' + 'Atualizando ' + aba.title)
+            sheet = sh.worksheet(aba.title).get_all_values()
+            sheet = DataFrame(sheet, columns = sheet.pop(0))
+            
+            for i,j in enumerate(sheet['projeto']):
+                print(j)
+                if j=='EQM' or j=="":
+                    a,b = [],[]
+                    valores[0].append(a)
+                    valores[1].append(b)
+                    cont = 0
+                else:
+                    id_projeto, titulo, statusprj, statususuario = consulta_projeto(j)
+                    statusceite, obsaceite, serial = consulta_pasta(id_projeto)
+                    a=[titulo]
+                    b=[statusprj,statususuario,statusceite,serial,obsaceite]
+
+            print(valores)
+
+    print(hora_atual() + ': Pastas atualizadas!')
+
+if __name__ == '__main__':
+    atualiza_pasta(juncao)
