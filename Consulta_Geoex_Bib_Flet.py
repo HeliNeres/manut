@@ -216,6 +216,39 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
     sh.worksheet(planilha).update(intervalo,valores)
     #print('\n' + 'Status das medições de ' + planilha + ' atualizados\n')
 
+def atualiza_planilha(link, progresso, porcentagem, nomeplanilha, intervalo):
+    global data, cookie, gxsessao, useragent
+    data = abre('_internal/cookie.json')
+    cookie = data['cookie']
+    gxsessao = data['gxsessao']
+    useragent = data['useragent']
+    # Chamada p/ atualizar planilha
+    if link == '':
+        sh = gs.open_by_key(planilhas[meses[-1]])
+    else:
+        if link in planilhas:
+            sh = gs.open_by_key(planilhas.get(link))
+        else:
+            sh = gs.open_by_key(link)
+
+    lista = sh.worksheets()
+    mes = sh.title
+
+
+    print(hora_atual() + ': ' + 'Atualizando ' + mes)
+
+    for aba in lista:
+        #break
+        aba = acha_nome(str(aba))
+        if aba[:6] == 'IEM/MP':
+            print(hora_atual() + ': ' + 'Atualizando ' + aba)
+            atualiza_medicao(aba, sh, mes, progresso, porcentagem, nomeplanilha, intervalo, cookie, gxsessao, useragent)
+            
+    nomeplanilha.value = f'Status das medições de {mes} atualizados\n'
+    nomeplanilha.update()
+            
+    print(hora_atual() + ': ' + mes + ' atualizado!')
+
 def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
     #print(cookie, '\n', gxsessao, '\n', useragent)
     id_projeto, titulo, statusprj, statususuario = '','','',''
@@ -246,10 +279,13 @@ def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
         id_projeto = r['Content']['ProjetoId']
         if r['Content']['Titulo'] != None:
             titulo = r['Content']['Titulo']
-        if r['Content']['StatusProjeto']['Descricao'] != None:
-            statusprj = r['Content']['StatusProjeto']['Descricao']
-        if r['Content']['StatusUsuario']['Descricao'] != None:
-            statususuario = r['Content']['StatusUsuario']['Descricao']
+        try:
+            if r['Content']['StatusProjeto']['Descricao'] != None:
+                statusprj = r['Content']['StatusProjeto']['Descricao']
+            if r['Content']['StatusUsuario']['Descricao'] != None:
+                statususuario = r['Content']['StatusUsuario']['Descricao']
+        except:
+            pass
     elif r['IsUnauthorized']:
         print(r)
         raise Exception('Cookie inválido! Não autorizado')
@@ -300,39 +336,6 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
 
     return statusceite, obsaceite, serial
 
-def atualiza_planilha(link, progresso, porcentagem, nomeplanilha, intervalo):
-    global data, cookie, gxsessao, useragent
-    data = abre('_internal/cookie.json')
-    cookie = data['cookie']
-    gxsessao = data['gxsessao']
-    useragent = data['useragent']
-    # Chamada p/ atualizar planilha
-    if link == '':
-        sh = gs.open_by_key(planilhas[meses[-1]])
-    else:
-        if link in planilhas:
-            sh = gs.open_by_key(planilhas.get(link))
-        else:
-            sh = gs.open_by_key(link)
-
-    lista = sh.worksheets()
-    mes = sh.title
-
-
-    print(hora_atual() + ': ' + 'Atualizando ' + mes)
-
-    for aba in lista:
-        #break
-        aba = acha_nome(str(aba))
-        if aba[:6] == 'IEM/MP':
-            print(hora_atual() + ': ' + 'Atualizando ' + aba)
-            atualiza_medicao(aba, sh, mes, progresso, porcentagem, nomeplanilha, intervalo, cookie, gxsessao, useragent)
-            
-    nomeplanilha.value = f'Status das medições de {mes} atualizados\n'
-    nomeplanilha.update()
-            
-    print(hora_atual() + ': ' + mes + ' atualizado!')
-
 def atualiza_pasta(juncao):
     sh = gs.open_by_key(juncao)
     print(hora_atual() + ': ' + 'Atualizando Pastas')
@@ -351,19 +354,23 @@ def atualiza_pasta(juncao):
             sheet = DataFrame(sheet, columns = sheet.pop(0))
             
             for i,j in enumerate(sheet['projeto']):
-                print(j)
+                #print(j)
+                #if i > 10:
+                #    break
                 if j=='EQM' or j=="":
                     a,b = [],[]
                     valores[0].append(a)
                     valores[1].append(b)
-                    cont = 0
                 else:
                     id_projeto, titulo, statusprj, statususuario = consulta_projeto(j)
                     statusceite, obsaceite, serial = consulta_pasta(id_projeto)
                     a=[titulo]
                     b=[statusprj,statususuario,statusceite,serial,obsaceite]
+                    valores[0].append(a)
+                    valores[1].append(b)
 
-            print(valores)
+            sh.worksheet(aba.title).update("D2:D",valores[0])
+            sh.worksheet(aba.title).update("H2:L",valores[1])
 
     print(hora_atual() + ': Pastas atualizadas!')
 
