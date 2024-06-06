@@ -336,28 +336,35 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
 
     return statusceite, obsaceite, serial
 
-def atualiza_pasta(juncao):
+def atualiza_pasta(infopastas, progressopasta, porcentagempasta):
     sh = gs.open_by_key(juncao)
     print(hora_atual() + ': ' + 'Atualizando Pastas')
 
     valores = [[],[]]
     a,b=[],[]
-    idgeoex = 'a'
-    cont = 0
 
     lista = sh.worksheets()
 
     for aba in lista:
         if aba.title in abas_pastas:
             print(hora_atual() + ': ' + 'Atualizando ' + aba.title)
+            infopastas.value = f'Atualizando status das pastas {aba.title}\n'
+            infopastas.update()
+
             sheet = sh.worksheet(aba.title).get_all_values()
             sheet = DataFrame(sheet, columns = sheet.pop(0))
-            
-            for i,j in enumerate(sheet['projeto']):
+
+            for i,j in enumerate(sheet['PROJETO']):
+                progressopasta.value = i/sheet.shape[0]
+                porcentagempasta.value =text='{:.2f}%'.format(progressopasta.value*100)
+                progressopasta.update()
+                porcentagempasta.update()
+                
                 #print(j)
                 #if i > 10:
                 #    break
                 if j=='EQM' or j=="":
+                    #a,b = [''],['','','','','']
                     a,b = [],[]
                     valores[0].append(a)
                     valores[1].append(b)
@@ -368,11 +375,21 @@ def atualiza_pasta(juncao):
                     b=[statusprj,statususuario,statusceite,serial,obsaceite]
                     valores[0].append(a)
                     valores[1].append(b)
+            #print(valores)
+            #break
+            progressopasta.value = 1
+            porcentagempasta.value =text='{:.2f}%'.format(progressopasta.value*100)
+            infopastas.value = f'Salvando status das pastas {aba.title}'
+            progressopasta.update()
+            porcentagempasta.update()
+            infopastas.update()
 
             sh.worksheet(aba.title).update("D2:D",valores[0])
             sh.worksheet(aba.title).update("H2:L",valores[1])
 
     print(hora_atual() + ': Pastas atualizadas!')
+    infopastas.value = f'Pastas atualizadas!\n'
+    infopastas.update()
 
 if __name__ == '__main__':
-    atualiza_pasta(juncao)
+    atualiza_pasta()

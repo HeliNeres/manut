@@ -31,8 +31,7 @@ def main(page: ft.Page):
     page.window_width = 800
     #page.window_height=500
     #page.theme_mode='light'
-    tema = ft.Theme(color_scheme_seed='teal')
-    page.theme = tema
+    page.theme = ft.Theme(color_scheme_seed='teal')
 
     conexao = ft.Text('-----', color=ft.colors.WHITE38, size=20, col={'sm': 3})
     cookienovo = ft.TextField(label='Cookie')
@@ -41,6 +40,8 @@ def main(page: ft.Page):
     temponovo = ft.TextField(label='Tempo', value='0')
     progresso = ft.ProgressBar(value=0)
     porcentagem = ft.Text('--%', text_align=ft.TextAlign.CENTER)
+    progressopasta = ft.ProgressBar(value=0)
+    porcentagempasta = ft.Text('--%', text_align=ft.TextAlign.CENTER)
     nomeplanilha = ft.Text('Selecione a opção de atualização.', text_align=ft.TextAlign.CENTER, theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM)
     popup = ft.AlertDialog()
     projetonovo = ft.TextField(label='Projeto')
@@ -247,6 +248,18 @@ def main(page: ft.Page):
             abrepopup('Erro na atualização')
             temporestante.value = 'Tempo até a próxima atualização: Erro'
             temporestante.update()
+    
+    def try_atualizapasta(e):
+        try:
+            infopastas.value = 'Atualizando...'
+            infopastas.update()
+            atualiza_pasta(infopastas, progressopasta, porcentagempasta)
+        except Exception as e:
+            print(e)
+            print('Erro na atualização')
+            abrepopup('Erro na atualização')
+            infopastas.value = 'Erro'
+            infopastas.update()
 
     def paratemp(e):
         global parar
@@ -303,6 +316,9 @@ def main(page: ft.Page):
     temporestante = ft.Text(theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM)
     colunameses = ft.Column(wrap=True, spacing=10, run_spacing=10, controls=mesesselecionados, scroll=ft.ScrollMode.AUTO)
     colunamesesdel = ft.Column(wrap=True, spacing=10, run_spacing=10, controls=mesesdel, scroll=ft.ScrollMode.AUTO)
+    
+    atualizapastas = ft.ElevatedButton(text='Atualizar uma vez', on_click=try_atualizapasta)
+    infopastas = ft.Text('Atualize os Status das Pastas', theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM)
 
     janelageo = ft.AlertDialog(
         title=ft.Text('Dados Geoex'),
@@ -446,6 +462,21 @@ def main(page: ft.Page):
         ])
     ]
 
+    abapastas = [
+        ft.Container(content=infopastas, padding=15),
+        ft.ResponsiveRow([
+            ft.Column(controls=[
+                ft.Container(content=ft.ResponsiveRow([
+                    atualizapastas
+                ]), padding=15),
+                ft.Container(content=ft.ResponsiveRow([
+                    ft.Container(content=progressopasta, alignment=ft.alignment.bottom_center, col={'sm': 10}, padding=10),
+                    ft.Container(content=porcentagempasta, alignment=ft.alignment.top_center, col={'sm': 2})
+                ]), padding=15)
+            ])
+        ])
+    ]
+
     t= ft.Tabs(
         selected_index=0,
         tabs=[
@@ -457,6 +488,12 @@ def main(page: ft.Page):
                 text='Atualiza Medições',
                 content=ft.Column(
                     controls=abamedicoes
+                )
+            ),
+            ft.Tab(
+                text='Atualiza Pasta',
+                content=ft.Column(
+                    controls=abapastas
                 )
             )
         ]
