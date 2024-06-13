@@ -57,15 +57,20 @@ def procura_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userage
         'id':projeto
     }
 
-    try:
-        r = post(url = url, headers = header, json = body)
-        r = r.json()
-    except Exception as e:
-        print(hora_atual())
-        print('Exception', e)
-        print('Requisição', r)
-        print('Projeto ', projeto)
-        raise Exception('Não foi possível acessar a página do GEOEX.')
+    while True:
+        try:
+            r = post(url = url, headers = header, json = body)
+            if r.status_code!=200:
+                print('Erro na requisição: Code: '+r.status_code+', Reason: '+r.reason+', Text: '+r.text, '\n')
+                continue
+            r = r.json()
+            break
+        except Exception as e:
+            print(hora_atual())
+            print('Exception', e)
+            print('Requisição', r)
+            print('Projeto ', projeto)
+            raise Exception('Não foi possível acessar a página do GEOEX.')
 
     if r['Content'] != None:
         id_projeto = r['Content']['ProjetoId']
@@ -106,7 +111,6 @@ def consulta_medicao_geoex(projeto, idmedicao, cookie=cookie, gxsessao=gxsessao,
         #print("Acessando página do GEOEX.")
         r = post(url = url, json = body, headers = header)
         r = r.json()
-        #print(r)
     except Exception as e:
         print(hora_atual())
         print('Não foi possível acessar a página do GEOEX.')
@@ -170,7 +174,8 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
         d = sheet['CÓDIGO SERVIÇO'][i]
         f = sheet['STATUS (GEOEX)'][i]
 
-        #print(c,j)
+        print(c, j, end="\r")
+
         if f=='PedidoLancado' or c == 'OBRA' or c == 'EQM' or c=='USO_MUTUO':
             a = []
             valores.append(a)
@@ -265,15 +270,20 @@ def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
         'id':projeto
     }
 
-    try:
-        r = post(url = url, headers = header, json = body)
-        r = r.json()
-    except Exception as e:
-        print(hora_atual())
-        print('Exception', e)
-        print('Requisição', r)
-        print('Projeto ', projeto)
-        raise Exception('Não foi possível acessar a página do GEOEX.')
+    while True:
+        try:
+            r = post(url = url, headers = header, json = body)
+            if r.status_code!=200:
+                print('Erro na requisição: Code: '+r.status_code+', Reason: '+r.reason+', Text: '+r.text, '\n')
+                continue
+            r = r.json()
+            break
+        except Exception as e:
+            print(hora_atual())
+            print('Exception', e)
+            print('Requisição', r)
+            print('Projeto ', projeto)
+            raise Exception('Não foi possível acessar a página do GEOEX.')
 
     if r['Content'] != None:
         id_projeto = r['Content']['ProjetoId']
@@ -307,15 +317,20 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
         'ProjetoId':idprojeto
     }
 
-    try:
-        r = post(url = url, headers = header, json = body)
-        r = r.json()
-    except Exception as e:
-        print(hora_atual())
-        print('Exception', e)
-        print('Requisição', r)
-        print('IDProjeto ', idprojeto)
-        raise Exception('Não foi possível acessar a página do GEOEX.')
+    while True:
+        try:
+            r = post(url = url, headers = header, json = body)
+            if r.status_code!=200:
+                print('Erro na requisição: Code: '+r.status_code+', Reason: '+r.reason+', Text: '+r.text, '\n')
+                continue
+            r = r.json()
+            break
+        except Exception as e:
+            print(hora_atual())
+            print('Exception', e)
+            print('Requisição', r)
+            print('IDProjeto ', idprojeto)
+            raise Exception('Não foi possível acessar a página do GEOEX.')
 
     try:
         if r['Content'] != None:

@@ -231,9 +231,10 @@ def main(page: ft.Page):
             parar, atualizando = True, False
             print(e)
             print('Erro na atualização')
-            abrepopup('Erro na atualização')
+            abrepopup('Erro na atualização\n'+str(e))
             temporestante.value = 'Tempo até a próxima atualização: Erro'
             temporestante.update()
+            checkgeoex(e)
 
     def try_atualizasemtemp(e):
         global parar, atualizando
@@ -245,9 +246,10 @@ def main(page: ft.Page):
             parar, atualizando = True, False
             print(e)
             print('Erro na atualização')
-            abrepopup('Erro na atualização')
+            abrepopup('Erro na atualização\n'+str(e))
             temporestante.value = 'Tempo até a próxima atualização: Erro'
             temporestante.update()
+            checkgeoex(e)
     
     def try_atualizapasta(e):
         try:
@@ -257,9 +259,10 @@ def main(page: ft.Page):
         except Exception as e:
             print(e)
             print('Erro na atualização')
-            abrepopup('Erro na atualização')
+            abrepopup('Erro na atualização\n'+str(e))
             infopastas.value = 'Erro'
             infopastas.update()
+            checkgeoex(e)
 
     def paratemp(e):
         global parar
@@ -468,11 +471,11 @@ def main(page: ft.Page):
             ft.Column(controls=[
                 ft.Container(content=ft.ResponsiveRow([
                     atualizapastas
-                ]), padding=15),
+                ])),
                 ft.Container(content=ft.ResponsiveRow([
                     ft.Container(content=progressopasta, alignment=ft.alignment.bottom_center, col={'sm': 10}, padding=10),
                     ft.Container(content=porcentagempasta, alignment=ft.alignment.top_center, col={'sm': 2})
-                ]), padding=15)
+                ]), padding=30)
             ])
         ])
     ]
@@ -485,13 +488,13 @@ def main(page: ft.Page):
                 content=menu
             ),
             ft.Tab(
-                text='Atualiza Medições',
+                text='Medições',
                 content=ft.Column(
                     controls=abamedicoes
                 )
             ),
             ft.Tab(
-                text='Atualiza Pasta',
+                text='Pastas',
                 content=ft.Column(
                     controls=abapastas
                 )
