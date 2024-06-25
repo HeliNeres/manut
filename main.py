@@ -28,8 +28,8 @@ def main(page: ft.Page):
     page.title = "BOT PARA ATUALIZAR STATUS DAS MEDIÇÕES DO GEOEX"
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.auto_scroll = True
-    page.window_width = 800
-    #page.window_height=500
+    #page.window.width = 800
+    #page.window.height=500
     #page.theme_mode='light'
     page.theme = ft.Theme(color_scheme_seed='teal')
 
@@ -53,8 +53,7 @@ def main(page: ft.Page):
 
     def abrepopup(menssagem):
         popup.title = ft.Text(menssagem, text_align=ft.TextAlign.CENTER)
-        page.dialog = popup
-        popup.open = True
+        page.open(popup)
         page.update()
 
     def itens(vetor):
@@ -92,6 +91,7 @@ def main(page: ft.Page):
             pass
 
     def close_dlg(janela):
+        page.close(janela)
         janela.open = False
         page.update()
     
@@ -122,16 +122,13 @@ def main(page: ft.Page):
             cookie, gxsessao, useragent = data['cookie'], data['gxsessao'], data['useragent']
             message = 'Não foi possível acessar o Geoex.'
 
+        close_dlg(janelageo)
         popup = ft.AlertDialog(title=ft.Text(message))
-        page.dialog = popup
-        popup.open = True
-        page.update()
+        page.open(popup)
 
     def open_dlg(janela):
-        page.dialog = janela
-        janela.open = True
+        page.open(janela)
         page.update()
-        janela.update()
 
     def atualizasemtemp():
         global atualizando1, mesesselecionados
@@ -324,6 +321,7 @@ def main(page: ft.Page):
     infopastas = ft.Text('Atualize os Status das Pastas', theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM)
 
     janelageo = ft.AlertDialog(
+        modal=True,
         title=ft.Text('Dados Geoex'),
         content=ft.Column(
             controls=[

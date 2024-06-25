@@ -61,7 +61,7 @@ def procura_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userage
         try:
             r = post(url = url, headers = header, json = body)
             if r.status_code!=200:
-                print('Erro na requisição: Code: '+r.status_code+', Reason: '+r.reason+', Text: '+r.text, '\n')
+                print(projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason))
                 continue
             r = r.json()
             break
@@ -274,7 +274,7 @@ def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
         try:
             r = post(url = url, headers = header, json = body)
             if r.status_code!=200:
-                print('Erro na requisição: Code: '+r.status_code+', Reason: '+r.reason+', Text: '+r.text, '\n')
+                print(projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason))
                 continue
             r = r.json()
             break
@@ -321,7 +321,7 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
         try:
             r = post(url = url, headers = header, json = body)
             if r.status_code!=200:
-                print('Erro na requisição: Code: '+r.status_code+', Reason: '+r.reason+', Text: '+r.text, '\n')
+                print(idprojeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason))
                 continue
             r = r.json()
             break
@@ -335,8 +335,16 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
     try:
         if r['Content'] != None:
             if len(r['Content']['Items'])>0:
-                if r['Content']['Items'][0]['HistoricoStatus']['Nome'] != None:
-                    statusceite = r['Content']['Items'][0]['HistoricoStatus']['Nome']
+                if r['Content']['Items'][0]['HistoricoStatusId'] != None:
+                    if r['Content']['Items'][0]['HistoricoStatusId']==30:
+                        statusceite="ACEITO"
+                    elif r['Content']['Items'][0]['HistoricoStatusId']==31:
+                        statusceite="ACEITO COM RESTRIÇÕES"
+                    elif r['Content']['Items'][0]['HistoricoStatusId']==32:
+                        statusceite="REJEITADO"
+                    else:
+                        statusceite=str(r['Content']['Items'][0]['HistoricoStatusId'])
+                    statusceite = str(r['Content']['Items'][0]['HistoricoStatusId'])
                 if r['Content']['Items'][0]['Observacao'] != None:
                     obsaceite = r['Content']['Items'][0]['Observacao']
                 if r['Content']['Items'][0]['Serial'] != None:
@@ -375,7 +383,7 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta):
                 progressopasta.update()
                 porcentagempasta.update()
                 
-                #print(j)
+                print("\r"+j)
                 #if i > 10:
                 #    break
                 if j=='EQM' or j=="":
@@ -407,4 +415,5 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta):
     infopastas.update()
 
 if __name__ == '__main__':
-    atualiza_pasta()
+    a=consulta_projeto('B-1131975')
+    print(consulta_pasta(a[0]))
