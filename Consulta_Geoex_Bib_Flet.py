@@ -277,6 +277,7 @@ def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
                 print(projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
                 continue
             r = r.json()
+            print('')
             break
         except Exception as e:
             print(hora_atual())
@@ -324,6 +325,7 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
                 print(str(idprojeto)+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
                 continue
             r = r.json()
+            print('')
             break
         except Exception as e:
             print(hora_atual())
@@ -386,7 +388,8 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta):
                 #if i > 10:
                 #    break
                 if j=='EQM' or j=="":
-                    #a,b = [''],['','','','','']
+                    if j=='EQM':
+                        a=['EQM']
                     a,b = [],[]
                     valores[0].append(a)
                     valores[1].append(b)
