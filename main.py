@@ -77,7 +77,11 @@ def main(page: ft.Page):
         page.window_destroy()
 
     def checkgeoex(e):
+        conexao.color = ft.colors.GREY
+        conexao.value = 'Consultando'
+        conexao.update()
         try:
+            consulta_projeto('B-1119157', cookie, gxsessao, useragent)
             procura_projeto('B-1119157', cookie, gxsessao, useragent)
             conexao.color = ft.colors.GREEN
             conexao.value = 'Conectado'
