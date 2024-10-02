@@ -22,7 +22,7 @@ def abre(arquivo):
 planilhas = abre('_internal/meses.json')
 meses = [a for a in planilhas]
 mes = meses[-1]
-juncao = '1khJrFoVUdEp3vh8rE9qnO090_0Ay6tll0AWdEHMSnyU'
+juncao = '1N0G-2y4fFniqwmIn716vakAWdZJRhV2cCy9yHHcINP8'
 abas_pastas = ['CAPEX_2024','OPEX_2024']
 
 #Abre o cookie para o GEOEX
@@ -191,6 +191,7 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
         print(str(i)+'/'+str(tamanho)+' - '+c, j, end="\r")
 
         if f=='PedidoLancado' or c == 'OBRA' or c == 'EQM' or c=='USO_MUTUO':
+        #if c == 'OBRA' or c == 'EQM' or c=='USO_MUTUO':
             a = []
             valores.append(a)
             cont = 0
@@ -323,7 +324,7 @@ def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
 
 def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
     #print(cookie, '\n', gxsessao, '\n', useragent)
-    statusceite, obsaceite, serial = '','',''
+    statusceite, obsaceite, serial = 'NÂO POSTADO','',''
     r = ''
     fim = False
 
@@ -370,6 +371,8 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
                         statusceite="CRIADO"
                     elif r['Content']['Items'][0]['HistoricoStatusId']==6:
                         statusceite="CANCELADO"
+                    elif r['Content']['Items'][0]['HistoricoStatusId']==35:
+                        statusceite="VALIDADO"
                     else:
                         statusceite=str(r['Content']['Items'][0]['HistoricoStatusId'])
                 if r['Content']['Items'][0]['Observacao'] != None:
@@ -386,9 +389,15 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
 
     return statusceite, obsaceite, serial
 
-def atualiza_pasta(infopastas, progressopasta, porcentagempasta):
+def atualiza_pasta(infopastas, progressopasta, porcentagempasta, data):
     sh = gs.open_by_key(juncao)
     print(hora_atual() + ': ' + 'Atualizando Pastas')
+    
+    global cookie, gxsessao, useragent
+    
+    cookie = data['cookie']
+    gxsessao = data['gxsessao']
+    useragent = data['useragent']
 
     valores = [[],[]]
     a,b=[],[]
@@ -441,7 +450,7 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta):
             porcentagempasta.update()
             infopastas.update()
 
-            sh.worksheet(aba.title).update("D2:D",valores[0])
+            #sh.worksheet(aba.title).update("D2:D",valores[0])
             sh.worksheet(aba.title).update("H2:L",valores[1])
 
     print(hora_atual() + ': Pastas atualizadas!')

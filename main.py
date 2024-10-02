@@ -9,9 +9,7 @@ marcados = []
 
 #importar valores do geoex
 data = abre('_internal/cookie.json')
-cookie = data['cookie']
-gxsessao = data['gxsessao']
-useragent = data['useragent']
+cookie, gxsessao, useragent = data['cookie'], data['gxsessao'], data['useragent']
 
 atualizando = False
 atualizando1 = False
@@ -113,10 +111,13 @@ def main(page: ft.Page):
             if useragentnovo.value!='':
                 useragent=str(useragentnovo.value).strip()
 
+            consulta_projeto('B-1119157', cookie, gxsessao, useragent)
             procura_projeto('B-1119157', cookie, gxsessao, useragent)
 
             data['cookie'], data['gxsessao'], data['useragent'] = cookie, gxsessao, useragent
             escreve_json('_internal/cookie.json', data)
+            data = abre('_internal/cookie.json')
+            cookie, gxsessao, useragent = data['cookie'], data['gxsessao'], data['useragent']
             message = 'Cookie atualizado!'
             print(message)
             conexao.color = ft.colors.GREEN
@@ -256,7 +257,7 @@ def main(page: ft.Page):
         try:
             infopastas.value = 'Atualizando...'
             infopastas.update()
-            atualiza_pasta(infopastas, progressopasta, porcentagempasta)
+            atualiza_pasta(infopastas, progressopasta, porcentagempasta, data)
         except Exception as e:
             print(e)
             print('Erro na atualização')
@@ -510,5 +511,5 @@ def main(page: ft.Page):
     checkgeoex(page)
 
 if __name__ == '__main__':
-    #ft.app(port=8550, target=main)
-    ft.app(port=80 ,target=main, view=ft.AppView.WEB_BROWSER)
+    ft.app(port=8550, target=main)
+    #ft.app(port=80 ,target=main, view=ft.AppView.WEB_BROWSER)
