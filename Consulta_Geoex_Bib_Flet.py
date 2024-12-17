@@ -4,6 +4,7 @@ from pandas import DataFrame
 from json import load, dump
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
+import os
 
 # Abrir credenciais do Google Sheets
 #scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -62,12 +63,12 @@ def procura_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userage
         try:
             r = post(url = url, headers = header, json = body)
             if r.status_code!=200:
-                print(projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
+                print("\033[K", projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
                 fim = True
                 continue
             if fim:
                 fim = False
-                print('')
+                #print('')
             r = r.json()
             break
         except Exception as e:
@@ -117,12 +118,12 @@ def consulta_medicao_geoex(projeto, idmedicao, cookie=cookie, gxsessao=gxsessao,
         try:
             r = post(url = url, headers = header, json = body)
             if r.status_code!=200:
-                print(projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
+                print("\033[K", projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
                 fim = True
                 continue
             if fim:
                 fim = False
-                print('')
+                #print('')
             r = r.json()
             break
         except Exception as e:
@@ -188,8 +189,6 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
         d = sheet['CÓDIGO SERVIÇO'][i]
         f = sheet['STATUS (GEOEX)'][i]
 
-        print(str(i)+'/'+str(tamanho)+' - '+c, j, end="\r")
-
         if f=='PedidoLancado' or c == 'OBRA' or c == 'EQM' or c=='USO_MUTUO':
         #if c == 'OBRA' or c == 'EQM' or c=='USO_MUTUO':
             a = []
@@ -224,6 +223,8 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
                 
             valores.append(a)
             cont = 0
+
+        print("\033[K", str(i)+'/'+str(tamanho)+' - '+c, j, a, end="\r")
 
         idgeoex = j
     
@@ -271,7 +272,7 @@ def atualiza_planilha(link, progresso, porcentagem, nomeplanilha, intervalo):
 
 def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
     #print(cookie, '\n', gxsessao, '\n', useragent)
-    id_projeto, titulo, statusprj, statususuario = '','','',''
+    id_projeto, titulo, statusprj, statususuario, statushektor  = '','','','',''
     r = ''
     projeto = str(projeto).strip()
     fim = False
@@ -290,12 +291,12 @@ def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
         try:
             r = post(url = url, headers = header, json = body)
             if r.status_code!=200:
-                print(projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
+                print("\033[K", projeto+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
                 fim = True
                 continue
             if fim:
                 fim = False
-                print('')
+                #print('')
             r = r.json()
             break
         except Exception as e:
@@ -314,17 +315,19 @@ def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
                 statusprj = r['Content']['StatusProjeto']['Descricao']
             if r['Content']['StatusUsuario']['Descricao'] != None:
                 statususuario = r['Content']['StatusUsuario']['Descricao']
+            if r['Content']['GseProjeto']['Status']['Nome'] != None:
+                statushektor = r['Content']['GseProjeto']['Status']['Nome']
         except:
             pass
     elif r['IsUnauthorized']:
         print(r)
         raise Exception('Cookie inválido! Não autorizado')
 
-    return id_projeto, titulo, statusprj, statususuario
+    return id_projeto, titulo, statusprj, statususuario, statushektor
 
 def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
     #print(cookie, '\n', gxsessao, '\n', useragent)
-    statusceite, obsaceite, serial = 'NÂO POSTADO','',''
+    statusceite, obsaceite, serial= 'NÂO POSTADO','',''
     r = ''
     fim = False
 
@@ -342,12 +345,12 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
         try:
             r = post(url = url, headers = header, json = body)
             if r.status_code!=200:
-                print(str(idprojeto)+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
+                print("\033[K", str(idprojeto)+' Erro na requisição: Code: '+str(r.status_code)+', Reason: '+str(r.reason), end='\r')
                 fim = True
                 continue
             if fim:
                 fim = False
-                print('')
+                #print('')
             r = r.json()
             break
         except Exception as e:
@@ -423,7 +426,7 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta, data):
                 progressopasta.update()
                 porcentagempasta.update()
                 
-                print(str(i)+'/'+str(tamanho)+' - '+j, end="\r")
+                #print("\033[K", str(i)+'/'+str(tamanho)+' - '+j, end="\r")
                 #if i > 10:
                 #    break
                 if j=="" or j=='-':
@@ -435,12 +438,13 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta, data):
                     valores[0].append(a)
                     valores[1].append(b)
                 else:
-                    id_projeto, titulo, statusprj, statususuario = consulta_projeto(j)
+                    id_projeto, titulo, statusprj, statususuario, statushektor = consulta_projeto(j)
                     statusceite, obsaceite, serial = consulta_pasta(id_projeto)
                     a=[titulo]
-                    b=[statusprj,statususuario,statusceite,serial,obsaceite]
+                    b=[statusprj,statususuario,statusceite,statushektor,serial,obsaceite]
                     valores[0].append(a)
                     valores[1].append(b)
+                print("\033[K", str(i)+'/'+str(tamanho)+' - '+j, b, end="\r")
             #print(valores)
             #break
             progressopasta.value = 1
@@ -451,7 +455,7 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta, data):
             infopastas.update()
 
             #sh.worksheet(aba.title).update("D2:D",valores[0])
-            sh.worksheet(aba.title).update("H2:L",valores[1])
+            sh.worksheet(aba.title).update("H2:M",valores[1])
 
     print(hora_atual() + ': Pastas atualizadas!')
     infopastas.value = f'Pastas atualizadas!\n'
