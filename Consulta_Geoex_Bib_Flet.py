@@ -224,7 +224,10 @@ def atualiza_medicao(planilha, sh, mes, progresso, porcentagem, nomeplanilha, in
             valores.append(a)
             cont = 0
 
-        print("\033[K", str(i)+'/'+str(tamanho)+' - '+c, j, a, end="\r")
+        try:
+            print("\033[K", str(i)+'/'+str(tamanho)+' - '+c, j, a[0], end="\r")
+        except:
+            print("\033[K", str(i)+'/'+str(tamanho)+' - '+c, j, a, end="\r")
 
         idgeoex = j
     
@@ -256,19 +259,19 @@ def atualiza_planilha(link, progresso, porcentagem, nomeplanilha, intervalo):
     mes = sh.title
 
 
-    print(hora_atual() + ': ' + 'Atualizando ' + mes)
+    print('\n' + hora_atual() + ': ' + 'Atualizando ' + mes)
 
     for aba in lista:
         #break
         aba = acha_nome(str(aba))
         if aba[:6] == 'IEM/MP':
-            print(hora_atual() + ': ' + 'Atualizando ' + aba)
+            print('\n' + hora_atual() + ': ' + 'Atualizando ' + aba)
             atualiza_medicao(aba, sh, mes, progresso, porcentagem, nomeplanilha, intervalo, cookie, gxsessao, useragent)
             
     nomeplanilha.value = f'Status das medições de {mes} atualizados\n'
     nomeplanilha.update()
             
-    print(hora_atual() + ': ' + mes + ' atualizado!')
+    print('\n' + hora_atual() + ': ' + mes + ' atualizado!')
 
 def consulta_projeto(projeto, cookie=cookie, gxsessao=gxsessao, useragent=useragent):
     #print(cookie, '\n', gxsessao, '\n', useragent)
@@ -394,7 +397,7 @@ def consulta_pasta(idprojeto, cookie=cookie, gxsessao=gxsessao, useragent=userag
 
 def atualiza_pasta(infopastas, progressopasta, porcentagempasta, data):
     sh = gs.open_by_key(juncao)
-    print(hora_atual() + ': ' + 'Atualizando Pastas')
+    print('\n' + hora_atual() + ': ' + 'Atualizando Pastas')
     
     global cookie, gxsessao, useragent
     
@@ -457,7 +460,7 @@ def atualiza_pasta(infopastas, progressopasta, porcentagempasta, data):
             #sh.worksheet(aba.title).update("D2:D",valores[0])
             sh.worksheet(aba.title).update("H2:M",valores[1])
 
-    print(hora_atual() + ': Pastas atualizadas!')
+    print('\n' + hora_atual() + ': Pastas atualizadas!')
     infopastas.value = f'Pastas atualizadas!\n'
     infopastas.update()
 
